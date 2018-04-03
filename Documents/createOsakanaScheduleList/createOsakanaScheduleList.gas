@@ -1,0 +1,63 @@
+function doGet(e) {
+  obtainCalendarData();
+  return ContentService.createTextOutput("更新しました！スプレッドシートをご確認下さい!!");
+}
+
+function obtainCalendarData() {
+  //IDを指定してカレンダーを取得
+  var calendar = CalendarApp.getCalendarById('soratobsakanadesu@gmail.com');
+
+  //対象の日付を範囲指定(今回は2018年)して予定を取得
+  var events = calendar.getEvents(new Date('2018/01/01'), new Date('2018/12/31'));
+  
+  //シートを指定
+  var inputsheet = SpreadsheetApp.openById('シートのIDを設定して下さい！！！！');
+  var sheet = inputsheet.getSheetByName("シート1");
+  sheet.clear();
+  
+  //各行のタイトルを指定
+  sheet.getRange('A'+(1)).setValue('イベント名')
+  sheet.getRange('B'+(1)).setValue('開始日')
+  sheet.getRange('C'+(1)).setValue('終了日')
+  //sheet.getRange('D'+(1)).setValue('所要時間')
+  sheet.getRange('D'+(1)).setValue('あと何日')
+  sheet.getRange('E'+(1)).setValue('場所')
+  sheet.getRange('F'+(1)).setValue('説明')
+  
+  // 背景色の設定
+  var color="#87cefa";
+  var changeColorRange=sheet.getRange("A1:F1");
+  changeColorRange.setBackground(color);
+  
+  // 今日の日付
+  var today = new Date();
+  
+  //繰り返す回数は予定の個数分(列を指定するためにforEachは使わない)
+  for (var i=0; i < events.length; i++) {
+    var title = events[i].getTitle();
+    var startTime = events[i].getStartTime()     
+    var endTime = events[i].getEndTime()
+    //単位の変換も同時に
+    //var duration = (endTime - startTime) / (1000 * 60 * 60)
+    var duration = Math.ceil((startTime.getTime() - today.getTime())/(1000*60*60*24))
+    var location = events[i].getLocation();
+    var description = events[i].getDescription();
+    
+    //iが0から始まることとタイトル分を考慮して +2している
+    sheet.getRange('A'+(i+2)).setValue(title);
+    sheet.getRange('B'+(i+2)).setValue(startTime);
+    sheet.getRange('C'+(i+2)).setValue(endTime);
+    //sheet.getRange('D'+(i+2)).setValue(duration + 'h');
+    sheet.getRange('D'+(i+2)).setValue(duration+'日');
+    sheet.getRange('E'+(i+2)).setValue(location);
+    sheet.getRange('F'+(i+2)).setValue(description);
+  }
+  
+  // ソート範囲の設定
+  var range = sheet.getRange("A2:F");
+  // ソート条件(開始日の降順)
+  range.sort([{column: 2, ascending: false}]);
+  
+  // 行の固定(1行目)
+  sheet.setFrozenRows(1);
+}
