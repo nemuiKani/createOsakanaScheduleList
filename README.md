@@ -1,0 +1,2 @@
+# createOsakanaScheduleList
+sora tob sakanaのスケジュールをGoogleカレンダーから取得。スプレッドシートに表示します。
